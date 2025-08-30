@@ -4,7 +4,6 @@ from spotipy.oauth2 import SpotifyOAuth
 
 app = Flask(__name__)
 
-# Dados da sua conta Spotify Developer
 CLIENT_ID = "7cb553bcc9504b03a00f05c7f87492db"
 CLIENT_SECRET = "7effe28a633644aaa1841e20b7f63acf"
 REDIRECT_URI = "https://moodlist-backend.onrender.com/callback"
@@ -27,13 +26,17 @@ def login():
 
 @app.route('/callback')
 def callback():
-    code = request.args.get('code')
+    code = request.args.get("code")
     token_info = sp_oauth.get_access_token(code, as_dict=True)
 
-    # Corrigido: pegar o access_token corretamente
     access_token = token_info['access_token']
+    refresh_token = token_info['refresh_token']   # <- importante guardar isso
 
-    sp = spotipy.Spotify(auth=access_token)
-    user_profile = sp.current_user()
+    return f"""
+    <h2>Login realizado com sucesso!</h2>
+    <p>Access Token: {access_token}</p>
+    <p>Refresh Token: {refresh_token}</p>
+    """
 
-    return f"Logado como: {user_profile['display_name']}"
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
