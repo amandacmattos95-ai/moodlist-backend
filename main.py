@@ -12,7 +12,7 @@ app = Flask(__name__)
 # SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, REDIRECT_URI
 
 CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID", "7cb553bcc9504b03a00f05c7f87492db")
-CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET", "7effe28a633644aaa1841e20b7f63acf")
+CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET", "137d5105ba574ed28aa9ca89ad216ae8")
 REDIRECT_URI = os.getenv("REDIRECT_URI", "https://moodlist-backend.onrender.com/callback")
 
 SCOPE = "user-library-read playlist-modify-public playlist-modify-private"
