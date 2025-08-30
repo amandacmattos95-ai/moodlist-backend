@@ -8,7 +8,7 @@ app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET", "change-me")  # defina FLASK_SECRET no Render
 
 SPOTIPY_CLIENT_ID = os.getenv("7cb553bcc9504b03a00f05c7f87492db")
-SPOTIPY_CLIENT_SECRET = os.getenv("137d5105ba574ed28aa9ca89ad216ae8")
+SPOTIPY_CLIENT_SECRET = os.getenv("062820ac33e64c9e84c59f9ffc806010")
 SPOTIPY_REDIRECT_URI = os.getenv(
     "SPOTIPY_REDIRECT_URI",
     "https://moodlist-backend.onrender.com/callback",
