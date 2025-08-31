@@ -1,9 +1,9 @@
 import os
-from flask import Flask, request, redirect
+from flask import Flask, request, redirect, url_for, session
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
-# ===== Config (lê as variáveis do Render) =====
+# Configurações do Spotify com variáveis de ambiente
 CLIENT_ID = os.getenv("SPOTIPY_CLIENT_ID")
 CLIENT_SECRET = os.getenv("SPOTIPY_CLIENT_SECRET")
 REDIRECT_URI = os.getenv("SPOTIPY_REDIRECT_URI", "https://moodlist-backend.onrender.com/callback")
@@ -12,74 +12,47 @@ SCOPE = "user-library-read playlist-modify-public playlist-modify-private"
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "change-me")
 
-def make_oauth():
-    # Helper que cria o objeto de OAuth com seus dados
-    return SpotifyOAuth(
-        client_id=CLIENT_ID,
-        client_secret=CLIENT_SECRET,
-        redirect_uri=REDIRECT_URI,
-        scope=SCOPE,
-        show_dialog=True
-    )
+sp_oauth = SpotifyOAuth(
+    client_id=CLIENT_ID,
+    client_secret=CLIENT_SECRET,
+    redirect_uri=REDIRECT_URI,
+    scope=SCOPE
+)
 
-@app.route("/")
-def home():
+@app.route('/')
+def index():
     return '<a href="/login">Login with Spotify</a>'
 
-@app.route("/login")
+@app.route('/login')
 def login():
-    sp_oauth = make_oauth()
     auth_url = sp_oauth.get_authorize_url()
     return redirect(auth_url)
 
-@app.route("/callback")
+@app.route('/callback')
 def callback():
-    # Tratando erros vindos do Spotify
-    if request.args.get("error"):
-        err = request.args.get("error", "")
-        desc = request.args.get("error_description", "")
-        return f"Error during callback: {err}, {desc}"
+    code = request.args.get('code')
+    if code:
+        try:
+            token_info = sp_oauth.get_access_token(code)
+            access_token = token_info['access_token']
 
-    code = request.args.get("code")
-    if not code:
+            sp = spotipy.Spotify(auth=access_token)
+            user_info = sp.current_user()
+            user_name = user_info['display_name']
+
+            # Cria uma playlist de exemplo
+            playlist = sp.user_playlist_create(user=user_info['id'], name='MoodList – Demo', public=False)
+
+            return f"""
+                <h1>Login successful!</h1>
+                <p>Logged in as: <strong>{user_name}</strong></p>
+                <p>Created playlist: <strong>{playlist['name']}</strong></p>
+                <p>You can close this tab now.</p>
+            """
+        except Exception as e:
+            return f"Error getting access token: {str(e)}"
+    else:
         return "Error during callback: missing code"
 
-    sp_oauth = make_oauth()
-
-    try:
-        # Versões diferentes do spotipy podem retornar dict/string. Forçamos dict.
-        token_info = sp_oauth.get_access_token(code, as_dict=True)
-    except Exception as e:
-        return f"Error getting access token: {e}"
-
-    access_token = token_info.get("access_token") if isinstance(token_info, dict) else None
-    if not access_token:
-        return "Error during callback: no access token"
-
-    # Teste simples: pega usuário e cria uma playlist privada
-    sp = spotipy.Spotify(auth=access_token)
-    me = sp.current_user()
-    user_name = me.get("display_name") or me.get("id")
-
-    playlist = sp.user_playlist_create(
-        me["id"],
-        "MoodList – Demo",
-        public=False,
-        description="created by MoodList demo"
-    )
-    pl_name = playlist.get("name", "(no name)")
-
-    return (
-        f"<h2>Login successful!</h2>"
-        f"<p>Logged in as: <b>{user_name}</b></p>"
-        f"<p>Created playlist: <b>{pl_name}</b></p>"
-        f"<p>You can close this tab now.</p>"
-    )
-
-@app.route("/health")
-def health():
-    ok = all([CLIENT_ID, CLIENT_SECRET, REDIRECT_URI])
-    return ("OK" if ok else "MISSING_ENV"), 200 if ok else 500
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "5000")))
+if __name__ == '__main__':
+    app.run(debug=True)
