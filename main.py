@@ -4,8 +4,8 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
 # ===== Config =====
-CLIENT_ID = os.getenv("CLIENT_ID")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+CLIENT_ID = os.getenv("7cb553bcc9504b03a00f05c7f87492db")
+CLIENT_SECRET = os.getenv("b440fecdc37049d4ad1ec5dc19970375")
 REDIRECT_URI = os.getenv("REDIRECT_URI", "https://moodlist-backend.onrender.com/callback")
 SCOPE = "user-library-read playlist-modify-public playlist-modify-private"
 
